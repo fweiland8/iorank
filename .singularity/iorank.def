@@ -1,0 +1,44 @@
+Bootstrap: library
+From: ubuntu:18.04
+Stage: build
+
+%environment
+    export CONDA_INSTALL_PATH="/usr/local/anaconda3"
+    PATH=$PATH:/usr/local/anaconda3/bin
+    export PATH
+
+%post
+    apt-get -y install wget git
+
+    # creates a build directory
+    mkdir build
+    cd build
+
+    # download and install Anaconda
+    CONDA_INSTALL_PATH="/usr/local/anaconda3"
+    wget https://repo.continuum.io/archive/Anaconda3-2019.10-Linux-x86_64.sh
+    chmod +x Anaconda3-2019.10-Linux-x86_64.sh
+    ./Anaconda3-2019.10-Linux-x86_64.sh -b -p $CONDA_INSTALL_PATH
+    rm Anaconda3-2019.10-Linux-x86_64.sh
+
+    cd ..
+
+    $CONDA_INSTALL_PATH/bin/conda create -n iorank --yes pip python=3.6
+
+    . $CONDA_INSTALL_PATH/etc/profile.d/conda.sh
+    conda activate iorank
+
+    #Install PyTorch
+    conda install --yes pytorch torchvision -c pytorch
+
+    #Install further dependencies
+    conda install --yes scipy h5py imageio pygmo qt -c conda-forge
+    pip install scikit-image opencv-python-headless
+
+    #Install csrank
+    pip install git+https://github.com/kiudee/cs-ranking.git
+
+%runscript
+    . $CONDA_INSTALL_PATH/etc/profile.d/conda.sh
+    conda activate iorank
+    exec "$@"
